@@ -37,7 +37,7 @@ class LanguageTrackerApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: HomeScreen(),
+      home: HomePage(),
     );
   }
 }

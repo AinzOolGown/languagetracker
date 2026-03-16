@@ -11,7 +11,23 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  List<Task> tasks = [];
+
   @override
+  void initState() {
+    super.initState();
+    loadTasks();
+  }
+
+  Future loadTasks() async {
+
+    final data = await DatabaseHelper.instance.readAllTasks();
+
+    setState(() {
+      tasks = data;
+    });
+  }
+
   Widget build(BuildContext context) {
 
     return Scaffold(
