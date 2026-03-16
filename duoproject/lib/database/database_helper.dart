@@ -75,14 +75,4 @@ class DatabaseHelper {
       whereArgs: [id],
     );
   }
-
-  Future<int> insertTask(Map<String, dynamic> row) async {
-    final db = await instance.database;
-    return await db.insert('tasks', row);
-  }
-
-  Future<List<Map<String, dynamic>>> getTasks() async {
-    final db = await instance.database;
-    return await db.query('tasks');
-  }
 }
