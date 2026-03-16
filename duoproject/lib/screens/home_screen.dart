@@ -42,14 +42,29 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Language Tracker"),
+        title: const Text("Language Tasks"),
       ),
-      body: Center(
-        child: Text("Home Screen"),
+      
+      body: ListView.builder(
+        itemCount: tasks.length,
+        itemBuilder: (context, index) {
+
+          final task = tasks[index];
+
+          return ListTile(
+            title: Text(task.title),
+            subtitle: Text(task.description),
+            leading: Checkbox(
+              value: task.completed,
+              onChanged: (_) {},
+            ),
+          );
+        },
       ),
+
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        child: Icon(Icons.add),
+        onPressed: openTaskCreator,
+        child: const Icon(Icons.add),
       ),
     );
   }
