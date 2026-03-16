@@ -20,12 +20,22 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future loadTasks() async {
-
     final data = await DatabaseHelper.instance.readAllTasks();
 
     setState(() {
       tasks = data;
     });
+  }
+
+  void openTaskCreator() async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => TaskScreen(),
+    );
+
+    // refresh tasks after closing
+    loadTasks();
   }
 
   Widget build(BuildContext context) {
