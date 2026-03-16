@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
+import '../database/database_helper.dart';
+import '../models/task.dart';
+import 'task_screen.dart';
 
-class HomeScreen extends StatelessWidget {
 
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
 
