@@ -35,6 +35,40 @@ class _TaskScreenState extends State<TaskScreen> {
         right: 16,
         top: 16,
       ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+
+          const Text(
+            "Create Task",
+            style: TextStyle(fontSize: 20),
+          ),
+
+          TextField(
+            controller: titleController,
+            decoration: const InputDecoration(
+              labelText: "Title",
+            ),
+          ),
+
+          TextField(
+            controller: descriptionController,
+            decoration: const InputDecoration(
+              labelText: "Description",
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          ElevatedButton(
+            onPressed: saveTask,
+            child: const Text("Save Task"),
+          ),
+
+          const SizedBox(height: 10),
+
+        ],
+      ),
     );
   }
 }
