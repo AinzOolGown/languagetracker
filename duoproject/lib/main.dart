@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
+import 'database/database_helper.dart';
 
-void main() {
+
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await testDatabase();
   runApp(LanguageTrackerApp());
+}
+
+Future<void> testDatabase() async {
+
+  final db = DatabaseHelper.instance;
+
 }
 
 class LanguageTrackerApp extends StatelessWidget {
