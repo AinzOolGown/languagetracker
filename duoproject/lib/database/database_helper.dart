@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import '../models/task.dart';
 
 class DatabaseHelper {
 
@@ -39,6 +40,19 @@ class DatabaseHelper {
     )
     ''');
 
+  }
+
+  Future<int> createTask(Task task) async {
+    final db = await instance.database;
+    return await db.insert('tasks', task.toMap());
+  }
+
+  Future<List<Task>> readAllTasks() async {
+    final db = await instance.database;
+
+    final result = await db.query('tasks');
+
+    return result.map((json) => Task.fromMap(json)).toList();
   }
 
   Future<int> insertTask(Map<String, dynamic> row) async {
