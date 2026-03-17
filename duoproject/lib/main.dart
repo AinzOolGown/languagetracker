@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
 
-void main() {
+
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(LanguageTrackerApp());
 }
 
@@ -13,7 +15,7 @@ class LanguageTrackerApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: HomeScreen(),
+      home: HomePage(),
     );
   }
 }
