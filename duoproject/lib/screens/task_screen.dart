@@ -1,3 +1,4 @@
+import 'package:duoproject/constants/task_constants.dart';
 import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
 import '../models/task.dart';
@@ -13,11 +14,17 @@ class _TaskScreenState extends State<TaskScreen> {
   final titleController = TextEditingController();
   final descriptionController = TextEditingController();
 
+  String selectedType = taskTypes[0];
+  int difficulty = 1;
+  DateTime? selectedDate;
+
   Future saveTask() async {
 
     final task = Task(
-      title: titleController.text,
-      description: descriptionController.text,
+      name: titleController.text,
+      comments: descriptionController.text,
+      type: selectedType,
+      difficulty: difficulty,
       completed: false,
     );
 
@@ -47,7 +54,61 @@ class _TaskScreenState extends State<TaskScreen> {
           TextField(
             controller: titleController,
             decoration: const InputDecoration(
-              labelText: "Title",
+              labelText: "Task Name",
+            ),
+          ),
+
+          DropdownButton<String>(
+            value: selectedType,
+            isExpanded: true,
+            items: taskTypes.map((type) {
+              return DropdownMenuItem(
+                value: type,
+                child: Text(type),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                selectedType = value!;
+                descriptionController.text = defaultComments[value]!;
+              });
+            },
+          ),
+
+          DropdownButton<int>(
+            value: difficulty,
+            items: [1, 2, 3, 4].map((level) {
+              return DropdownMenuItem(
+                value: level,
+                child: Text("Level $level"),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                difficulty = value!;
+              });
+            },
+          ),
+
+          ElevatedButton(
+            onPressed: () async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(2020),
+                lastDate: DateTime(2100),
+              );
+
+              if (picked != null) {
+                setState(() {
+                  selectedDate = picked;
+                });
+              }
+            },
+            child: Text(
+              selectedDate == null
+                ? "Select Due Date (Optional)"
+                : selectedDate.toString().split(' ')[0],
             ),
           ),
 
