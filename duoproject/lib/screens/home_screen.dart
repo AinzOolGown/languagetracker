@@ -52,11 +52,33 @@ class _HomePageState extends State<HomePage> {
           final task = tasks[index];
 
           return ListTile(
-            title: Text(task.title),
-            subtitle: Text(task.description),
+            title: Text(task.name),
+
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Type: ${task.type}"),
+                Text(
+                  task.dueDate != null
+                    ? "Due: ${task.dueDate}"
+                    : "Goal (no due date)"
+                ),
+                Text("XP: ${task.xp}"),
+              ],
+            ),
+
             leading: Checkbox(
               value: task.completed,
-              onChanged: (_) {},
+              onChanged: (_) {
+                toggleTask(task);
+              },
+            ),
+
+            trailing: IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: () {
+                deleteTask(task.id!);
+              },
             ),
           );
         },
