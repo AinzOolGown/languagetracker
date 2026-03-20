@@ -22,10 +22,10 @@ class _TaskScreenState extends State<TaskScreen> {
 
     final task = Task(
       name: titleController.text,
-      comments: descriptionController.text,
       type: selectedType,
-      difficulty: difficulty,
       dueDate: selectedDate?.toString(),
+      difficulty: difficulty,
+      comments: descriptionController.text,
       completed: false,
     );
 
