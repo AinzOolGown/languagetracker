@@ -52,6 +52,7 @@ class _HomePageState extends State<HomePage> {
     loadTasks();
   }
 
+  @override
   Widget build(BuildContext context) {
 
     return Scaffold(
@@ -71,7 +72,7 @@ class _HomePageState extends State<HomePage> {
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Type: ${task.type}"),
+                Text("${task.type}"),
                 Text(
                   task.dueDate != null
                     ? "Due: ${task.dueDate}"

@@ -8,6 +8,8 @@ void main() async{
 }
 
 class LanguageTrackerApp extends StatelessWidget {
+  const LanguageTrackerApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
