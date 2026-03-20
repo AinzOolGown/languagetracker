@@ -25,6 +25,7 @@ class _TaskScreenState extends State<TaskScreen> {
       comments: descriptionController.text,
       type: selectedType,
       difficulty: difficulty,
+      dueDate: selectedDate?.toString(),
       completed: false,
     );
 

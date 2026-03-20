@@ -38,6 +38,20 @@ class _HomePageState extends State<HomePage> {
     loadTasks();
   }
 
+  Future toggleTask(Task task) async {
+    task.completed = !task.completed;
+
+    await DatabaseHelper.instance.updateTask(task);
+
+    loadTasks();
+  }
+
+  Future deleteTask(int id) async {
+    await DatabaseHelper.instance.deleteTask(id);
+
+    loadTasks();
+  }
+
   Widget build(BuildContext context) {
 
     return Scaffold(
