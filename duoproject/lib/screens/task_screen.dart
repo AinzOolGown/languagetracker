@@ -167,7 +167,18 @@ class _TaskScreenState extends State<TaskScreen> {
                 ? "Select Due Date & Time (Optional)"
                 : formatDateTime(selectedDateTime!),
             ),
+            
           ),
+
+          if (selectedDateTime != null)
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  selectedDateTime = null;
+                });
+              },
+              child: const Text("Clear Due Date"),
+            ),  
 
           TextField(
             controller: descriptionController,

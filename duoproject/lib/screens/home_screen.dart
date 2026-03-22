@@ -63,6 +63,11 @@ class _HomePageState extends State<HomePage> {
     loadTasks();
   }
 
+  String formatDisplayDate(String isoString) {
+    final dt = DateTime.parse(isoString);
+    return "${dt.month}/${dt.day} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}";
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -96,7 +101,7 @@ class _HomePageState extends State<HomePage> {
                     Text("Type: ${task.type}"),
                     Text(
                       task.dueDate != null
-                        ? "Due: ${task.dueDate}"
+                        ? "Due: ${formatDisplayDate(task.dueDate!)}"
                         : "Goal (no due date)"
                     ),
                     Text("XP: ${task.xp}"),
