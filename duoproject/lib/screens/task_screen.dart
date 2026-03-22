@@ -1,4 +1,5 @@
 import 'package:duoproject/constants/task_constants.dart';
+import 'package:duoproject/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
 import '../models/task.dart';
@@ -16,20 +17,53 @@ class _TaskScreenState extends State<TaskScreen> {
 
   String selectedType = taskTypes[0];
   int difficulty = 1;
-  DateTime? selectedDate;
+  DateTime? selectedDateTime;
+
+  String formatDateTime(DateTime dt) {
+    return "${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} "
+          "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+  }
 
   Future saveTask() async {
 
     final task = Task(
       name: titleController.text,
       type: selectedType,
-      dueDate: selectedDate?.toString(),
+      dueDate: selectedDateTime?.toString(),
       difficulty: difficulty,
       comments: descriptionController.text,
       completed: false,
     );
 
-    await DatabaseHelper.instance.createTask(task);
+    final id = await DatabaseHelper.instance.createTask(task);
+    if (selectedDateTime != null) {
+      final due = selectedDateTime!;
+
+      // 1 DAY BEFORE
+      final oneDayBefore = due.subtract(Duration(days: 1));
+
+      // 1 HOUR BEFORE
+      final oneHourBefore = due.subtract(Duration(hours: 1));
+
+      // Only schedule if future time
+      if (oneDayBefore.isAfter(DateTime.now())) {
+        await NotificationService.instance.scheduleNotification(
+          id: id * 2,
+          title: "Task Due Soon",
+          body: "${task.name} is due in 1 day",
+          scheduledDate: oneDayBefore,
+        );
+      }
+
+      if (oneHourBefore.isAfter(DateTime.now())) {
+        await NotificationService.instance.scheduleNotification(
+          id: id * 2 + 1,
+          title: "Task Due Soon",
+          body: "${task.name} is due in 1 hour",
+          scheduledDate: oneHourBefore,
+        );
+      }
+    }
 
     Navigator.pop(context); // close modal
   }
@@ -93,23 +127,45 @@ class _TaskScreenState extends State<TaskScreen> {
 
           ElevatedButton(
             onPressed: () async {
-              final picked = await showDatePicker(
+
+              // Step 1: Pick date
+              final pickedDate = await showDatePicker(
                 context: context,
-                initialDate: DateTime.now(),
+                initialDate: selectedDateTime ?? DateTime.now(),
                 firstDate: DateTime(2020),
                 lastDate: DateTime(2100),
               );
 
-              if (picked != null) {
-                setState(() {
-                  selectedDate = picked;
-                });
-              }
+              if (pickedDate == null) return;
+
+              // Step 2: Pick time
+              final pickedTime = await showTimePicker(
+                context: context,
+                initialTime: TimeOfDay.fromDateTime(
+                  selectedDateTime ?? DateTime.now(),
+                ),
+              );
+
+              if (pickedTime == null) return;
+
+              // Step 3: Combine into DateTime
+              final combined = DateTime(
+                pickedDate.year,
+                pickedDate.month,
+                pickedDate.day,
+                pickedTime.hour,
+                pickedTime.minute,
+              );
+
+              setState(() {
+                selectedDateTime = combined;
+              });
             },
+
             child: Text(
-              selectedDate == null
-                ? "Select Due Date (Optional)"
-                : selectedDate.toString().split(' ')[0],
+              selectedDateTime == null
+                ? "Select Due Date & Time (Optional)"
+                : formatDateTime(selectedDateTime!),
             ),
           ),
 

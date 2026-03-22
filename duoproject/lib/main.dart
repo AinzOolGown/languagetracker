@@ -1,9 +1,11 @@
+import 'package:duoproject/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
 
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.instance.init();
   runApp(LanguageTrackerApp());
 }
 
