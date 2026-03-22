@@ -12,6 +12,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<Task> tasks = [];
+  Set<int> removingTasks = {};
 
   @override
   void initState() {
@@ -52,6 +53,16 @@ class _HomePageState extends State<HomePage> {
     loadTasks();
   }
 
+  Future completeTaskWithAnimation(Task task) async {
+    setState(() {
+      removingTasks.add(task.id!);
+    });
+    await Future.delayed(Duration(milliseconds: 300));
+    task.completed = true;
+    await DatabaseHelper.instance.updateTask(task);
+    loadTasks();
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -66,34 +77,66 @@ class _HomePageState extends State<HomePage> {
 
           final task = tasks[index];
 
-          return ListTile(
-            title: Text(task.name),
+          return AnimatedOpacity(
+            duration: Duration(milliseconds: 300),
+            opacity: removingTasks.contains(task.id) ? 0.0 : 1.0,
 
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("${task.type}"),
-                Text(
-                  task.dueDate != null
-                    ? "Due: ${task.dueDate}"
-                    : "Goal (no due date)"
+            child: AnimatedSlide(
+              duration: Duration(milliseconds: 300),
+              offset: removingTasks.contains(task.id)
+                  ? Offset(1, 0)
+                  : Offset(0, 0),
+
+              child: ListTile(
+                title: Text(task.name),
+
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Type: ${task.type}"),
+                    Text(
+                      task.dueDate != null
+                        ? "Due: ${task.dueDate}"
+                        : "Goal (no due date)"
+                    ),
+                    Text("XP: ${task.xp}"),
+                  ],
                 ),
-                Text("XP: ${task.xp}"),
-              ],
-            ),
 
-            leading: Checkbox(
-              value: task.completed,
-              onChanged: (_) {
-                toggleTask(task);
-              },
-            ),
+                leading: Checkbox(
+                  value: task.completed,
+                  onChanged: (_) async {
+                    final confirm = await showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text("Complete Task"),
+                        content: Text("Mark this task as completed?"),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: Text("Cancel"),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: Text("Confirm"),
+                          ),
+                        ],
+                      ),
+                    );
 
-            trailing: IconButton(
-              icon: Icon(Icons.delete),
-              onPressed: () {
-                deleteTask(task.id!);
-              },
+                    if (confirm == true) {
+                      completeTaskWithAnimation(task);
+                    }
+                  },
+                ),
+
+                trailing: IconButton(
+                  icon: Icon(Icons.delete),
+                  onPressed: () {
+                    deleteTask(task.id!);
+                  },
+                ),
+              ),
             ),
           );
         },
