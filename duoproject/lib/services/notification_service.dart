@@ -12,6 +12,7 @@ class NotificationService {
 
   Future init() async {
     tz.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation('America/New_York'));
 
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
 
@@ -20,6 +21,11 @@ class NotificationService {
     );
 
     await flutterLocalNotificationsPlugin.initialize(settings);
+
+    await flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.requestNotificationsPermission();
   }
 
   Future scheduleNotification({

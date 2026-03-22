@@ -36,6 +36,7 @@ class _TaskScreenState extends State<TaskScreen> {
     );
 
     final id = await DatabaseHelper.instance.createTask(task);
+    
     if (selectedDateTime != null) {
       final due = selectedDateTime!;
 
@@ -63,8 +64,10 @@ class _TaskScreenState extends State<TaskScreen> {
           scheduledDate: oneHourBefore,
         );
       }
+      
     }
 
+    print("Scheduling notification at: ${selectedDateTime?.toString()}");
     Navigator.pop(context); // close modal
   }
 
