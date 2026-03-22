@@ -18,6 +18,8 @@ class _TaskScreenState extends State<TaskScreen> {
   String selectedType = taskTypes[0];
   int difficulty = 1;
   DateTime? selectedDateTime;
+  
+  get flutterLocalNotificationsPlugin => null;
 
   String formatDateTime(DateTime dt) {
     return "${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} "
@@ -26,10 +28,17 @@ class _TaskScreenState extends State<TaskScreen> {
 
   Future saveTask() async {
 
+    await NotificationService.instance.scheduleNotification(
+      id: 999,
+      title: "TEST",
+      body: "This should fire in 30 seconds",
+      scheduledDate: DateTime.now().add(Duration(seconds: 30)),
+    );
+
     final task = Task(
       name: titleController.text,
       type: selectedType,
-      dueDate: selectedDateTime?.toString(),
+      dueDate: selectedDateTime?.toIso8601String(),
       difficulty: difficulty,
       comments: descriptionController.text,
       completed: false,
@@ -40,14 +49,11 @@ class _TaskScreenState extends State<TaskScreen> {
     if (selectedDateTime != null) {
       final due = selectedDateTime!;
 
-      // 1 DAY BEFORE
       final oneDayBefore = due.subtract(Duration(days: 1));
-
-      // 1 HOUR BEFORE
       final oneHourBefore = due.subtract(Duration(hours: 1));
 
       // Only schedule if future time
-      if (oneDayBefore.isAfter(DateTime.now())) {
+        if (oneDayBefore.isAfter(DateTime.now())) {
         await NotificationService.instance.scheduleNotification(
           id: id * 2,
           title: "Task Due Soon",
@@ -64,10 +70,19 @@ class _TaskScreenState extends State<TaskScreen> {
           scheduledDate: oneHourBefore,
         );
       }
-      
+
+      if (due.isAfter(DateTime.now())) {
+        await NotificationService.instance.scheduleNotification(
+          id: id,
+          title: "Task Due",
+          body: "${task.name} is due now",
+          scheduledDate: due,
+        );
+      }
     }
 
-    print("Scheduling notification at: ${selectedDateTime?.toString()}");
+    final pending = await flutterLocalNotificationsPlugin.pendingNotificationRequests();
+    print("Pending notifications: ${pending.length}");
     Navigator.pop(context); // close modal
   }
 

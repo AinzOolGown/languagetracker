@@ -12,7 +12,7 @@ class NotificationService {
 
   Future init() async {
     tz.initializeTimeZones();
-    tz.setLocalLocation(tz.getLocation('America/New_York'));
+    tz.setLocalLocation(tz.local);
 
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
 
@@ -22,10 +22,20 @@ class NotificationService {
 
     await flutterLocalNotificationsPlugin.initialize(settings);
 
-    await flutterLocalNotificationsPlugin
-      .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>()
-      ?.requestNotificationsPermission();
+    final androidPlugin = flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+
+    await androidPlugin?.requestNotificationsPermission();
+
+    const channel = AndroidNotificationChannel(
+      'task_channel',
+      'Task Notifications',
+      description: 'Notifications for task reminders',
+      importance: Importance.max,
+    );
+
+    await androidPlugin?.createNotificationChannel(channel);
   }
 
   Future scheduleNotification({
@@ -50,7 +60,7 @@ class NotificationService {
       ),
       uiLocalNotificationDateInterpretation:
         UILocalNotificationDateInterpretation.absoluteTime,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       matchDateTimeComponents: null,
     );
   }

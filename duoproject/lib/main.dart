@@ -6,15 +6,6 @@ import 'screens/home_screen.dart';
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService.instance.init();
-
-  /**/ 
-  await NotificationService.instance.scheduleNotification(
-    id: 999,
-    title: "Test Notification",
-    body: "This should fire in 30 seconds",
-    scheduledDate: DateTime.now().add(Duration(seconds: 30)),
-  );
-
   runApp(LanguageTrackerApp());
 }
 
