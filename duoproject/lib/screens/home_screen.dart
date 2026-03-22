@@ -20,7 +20,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future loadTasks() async {
-    final data = await DatabaseHelper.instance.readAllTasks();
+    final data = await DatabaseHelper.instance.readActiveTasks();
 
     setState(() {
       tasks = data;

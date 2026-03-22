@@ -58,6 +58,19 @@ class DatabaseHelper {
     return result.map((json) => Task.fromMap(json)).toList();
   }
 
+  // Only read tasks that are not completed
+  Future<List<Task>> readActiveTasks() async {
+    final db = await instance.database;
+
+    final result = await db.query(
+      'tasks',
+      where: 'completed = ?',
+      whereArgs: [0],
+    );
+
+    return result.map((json) => Task.fromMap(json)).toList();
+  }
+
   Future<int> updateTask(Task task) async {
     final db = await instance.database;
 
