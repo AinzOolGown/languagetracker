@@ -1,3 +1,4 @@
+import 'package:duoproject/screens/history_screen.dart';
 import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
 import '../models/task.dart';
@@ -69,6 +70,18 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Language Tasks"),
+        actions: [
+          IconButton(
+            tooltip: "History",
+            icon: Icon(Icons.history_rounded),
+            onPressed: (){
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => HistoryScreen()),
+              );
+            },
+          ),
+        ],
       ),
       
       body: ListView.builder(
