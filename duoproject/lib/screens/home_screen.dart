@@ -28,6 +28,7 @@ class _HomePageState extends State<HomePage> {
     loadTasks();
   }
 
+  // Toggle expansion of a task tile
   void toggleExpanded(Task task) {
     setState(() {
       if (expandedTaskId == task.id) {
@@ -38,6 +39,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // Load tasks and XP from the database
   Future<void> loadTasks() async {
     final db = DatabaseHelper.instance;
 
@@ -63,6 +65,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Open task creation modal
   void openTaskCreator() async {
     await showModalBottomSheet(
       context: context,
@@ -72,6 +75,7 @@ class _HomePageState extends State<HomePage> {
     loadTasks();
   }
 
+  // Mark task as completed with animation and XP gain
   Future completeTaskWithAnimation(Task task) async {
     setState(() {
       removingTasks.add(task.id!);
@@ -93,6 +97,7 @@ class _HomePageState extends State<HomePage> {
     await loadTasks();
   }
 
+  // Delete task with confirmation dialog
   Future deleteTask(int id) async {
     final confirm = await showDialog(
       context: context,
@@ -137,6 +142,7 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
 
+      // Main content area
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
@@ -159,9 +165,12 @@ class _HomePageState extends State<HomePage> {
 
               const SizedBox(height: 10),
 
+              // Task list
               Expanded(
                 child: tasks.isEmpty
+                    // placeholder when no tasks
                     ? const Center(child: Text("No tasks yet"))
+                    // ListView of TaskTiles
                     : ListView.builder(
                         itemCount: tasks.length,
                         itemBuilder: (context, index) {
@@ -176,6 +185,7 @@ class _HomePageState extends State<HomePage> {
 
                             onDelete: () => deleteTask(task.id!),
 
+                            // Show confirmation dialog before marking as completed
                             onComplete: () async {
                               final confirm = await showDialog(
                                 context: context,
@@ -208,6 +218,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
 
+      // Add task button
       floatingActionButton: FloatingActionButton(
         onPressed: openTaskCreator,
         child: const Icon(Icons.add),
