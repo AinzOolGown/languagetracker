@@ -1,5 +1,6 @@
 import 'package:duoproject/screens/history_screen.dart';
 import 'package:duoproject/widgets/xp_progress_bar.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
 import '../models/task.dart';
@@ -212,26 +213,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(height: 16),
-              /* -- Currently has no implementation with Database
-              Row(
-                children: [
-                  _summaryCard(
-                    icon: Icons.local_fire_department_rounded,
-                    label: "Streak",
-                    value: "$streak days",
-                    color: const Color(0xFFF97316),
-                  ),
-                  const SizedBox(width: 12),
-                  _summaryCard(
-                    icon: Icons.check_circle_rounded,
-                    label: "Completed",
-                    value: "$completedCount",
-                    color: const Color(0xFF10B981),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 18),
-              */
               Row(
                 children: const [
                   Icon(Icons.assignment_rounded, color: Color(0xFF374151)),
@@ -292,150 +273,158 @@ class _HomePageState extends State<HomePage> {
                                   ? Offset(1, 0)
                                   : Offset(0, 0),
 
-                              child: ListTile(
-                                title: Text(task.name),
-
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text("Type: ${task.type}"),
-                                    Text(
-                                      task.dueDate != null
-                                        ? "Due: ${task.dueDate}"
-                                        : "Goal (no due date)"
+                              child: Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(color: const Color(0xFFE5E7EB)),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.06),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 6),
                                     ),
-                                    Text("XP: ${calculateXp(task)}"),
                                   ],
                                 ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    //Checkbox
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 2),
+                                      child: Checkbox(
+                                        value: task.completed,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        onChanged: (_) async {
+                                          final confirm = await showDialog(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              title: const Text("Complete Task"),
+                                              content: const Text("Mark this task as completed?"),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () => Navigator.pop(context, false),
+                                                  child: const Text("Cancel"),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () => Navigator.pop(context, true),
+                                                  child: const Text("Confirm"),
+                                                ),
+                                              ],
+                                            ),
+                                          );
 
-                                leading: Checkbox(
-                                  value: task.completed,
-                                  onChanged: (_) async {
-                                    final confirm = await showDialog(
-                                      context: context,
-                                      builder: (context) => AlertDialog(
-                                        title: Text("Complete Task"),
-                                        content: Text("Mark this task as completed?"),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () => Navigator.pop(context, false),
-                                            child: Text("Cancel"),
+                                          if (confirm == true) {
+                                            completeTaskWithAnimation(task);
+                                          }
+                                        },
+                                      ),
+                                    ),
+
+                                    const SizedBox(width: 10),
+
+                                    // Main task content
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          // Title
+                                          Text(
+                                            task.name,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w700,
+                                              color: Color(0xFF111827),
+                                            ),
                                           ),
-                                          TextButton(
-                                            onPressed: () => Navigator.pop(context, true),
-                                            child: Text("Confirm"),
+
+                                          const SizedBox(height: 6),
+
+                                          // Due Date
+                                          Text(
+                                            task.dueDate != null
+                                                ? DateFormat('MMM d, yyyy')
+                                                    .format(DateTime.parse(task.dueDate!))
+                                                : "No due date",
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              color: Color(0xFF6B7280),
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+
+                                          const SizedBox(height: 10),
+
+                                          // Chips Row
+                                          Row(
+                                            children: [
+                                              // Type chip
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFFEEF2FF),
+                                                  borderRadius: BorderRadius.circular(10),
+                                                ),
+                                                child: Text(
+                                                  task.type,
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Color(0xFF4338CA),
+                                                  ),
+                                                ),
+                                              ),
+
+                                              const SizedBox(width: 8),
+
+                                              // XP chip
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFFFFF7ED),
+                                                  borderRadius: BorderRadius.circular(10),
+                                                ),
+                                                child: Text(
+                                                  "+${calculateXp(task)} XP",
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: Color(0xFFF97316),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
-                                    );
+                                    ),
 
-                                    if (confirm == true) {
-                                      completeTaskWithAnimation(task);
-                                    }
-                                  },
-                                ),
-
-                                trailing: IconButton(
-                                  icon: Icon(Icons.delete),
-                                  onPressed: () {
-                                    deleteTask(task.id!);
-                                  },
+                                    // Delete button
+                                    IconButton(
+                                      icon: const Icon(Icons.delete_outline),
+                                      color: const Color(0xFF9CA3AF),
+                                      onPressed: () {
+                                        deleteTask(task.id!);
+                                      },
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
                           );
                         },
-                        /* -- previous hardcoded list
-                        padding: const EdgeInsets.only(bottom: 100),
-                        itemCount: tasks.length,
-                        itemBuilder: (context, index) {
-                          return TaskCard(
-                            task: tasks[index],
-                            onOpen: () => openTask(index),
-                            onToggleComplete: () => toggleTask(index),
-                            onDelete: () => deleteTask(index),
-                          );
-                        },
-                        */
                       ),
               ),
             ],
           ),
         ),
       ),
-
-      /*
-      body: ListView.builder(
-        itemCount: tasks.length,
-        itemBuilder: (context, index) {
-
-          final task = tasks[index];
-
-          return AnimatedOpacity(
-            duration: Duration(milliseconds: 300),
-            opacity: removingTasks.contains(task.id) ? 0.0 : 1.0,
-
-            child: AnimatedSlide(
-              duration: Duration(milliseconds: 300),
-              offset: removingTasks.contains(task.id)
-                  ? Offset(1, 0)
-                  : Offset(0, 0),
-
-              child: ListTile(
-                title: Text(task.name),
-
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Type: ${task.type}"),
-                    Text(
-                      task.dueDate != null
-                        ? "Due: ${task.dueDate}"
-                        : "Goal (no due date)"
-                    ),
-                    Text("XP: ${calculateXp(task)}"),
-                  ],
-                ),
-
-                leading: Checkbox(
-                  value: task.completed,
-                  onChanged: (_) async {
-                    final confirm = await showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text("Complete Task"),
-                        content: Text("Mark this task as completed?"),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, false),
-                            child: Text("Cancel"),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            child: Text("Confirm"),
-                          ),
-                        ],
-                      ),
-                    );
-
-                    if (confirm == true) {
-                      completeTaskWithAnimation(task);
-                    }
-                  },
-                ),
-
-                trailing: IconButton(
-                  icon: Icon(Icons.delete),
-                  onPressed: () {
-                    deleteTask(task.id!);
-                  },
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-      */
 
       floatingActionButton: FloatingActionButton(
         onPressed: openTaskCreator,
