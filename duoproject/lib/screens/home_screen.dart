@@ -58,11 +58,18 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future loadTasks() async {
-    final data = await DatabaseHelper.instance.readActiveTasks();
+  Future<void> loadTasks() async {
+    final db = DatabaseHelper.instance;
+
+    final loadedTasks = await db.readActiveTasks();
+    final loadedLifetimeXp = await db.getLifetimeXp();
 
     setState(() {
-      tasks = data;
+      tasks = loadedTasks;
+      lifetimeXp = loadedLifetimeXp;
+
+      currentXp = lifetimeXp % 200;
+      level = (lifetimeXp ~/ 200) + 1;
     });
   }
 
@@ -128,7 +135,7 @@ class _HomePageState extends State<HomePage> {
       xp: xp,
     );
 
-    loadTasks();
+    await loadTasks();
   }
 
   @override
