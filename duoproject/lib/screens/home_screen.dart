@@ -1,9 +1,9 @@
 import 'package:duoproject/screens/history_screen.dart';
 import 'package:duoproject/widgets/xp_progress_bar.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
 import '../models/task.dart';
+import '../widgets/task_tile.dart';
 import 'task_screen.dart';
 
 class HomePage extends StatefulWidget {
@@ -200,151 +200,39 @@ class _HomePageState extends State<HomePage> {
                         itemCount: tasks.length,
                         itemBuilder: (context, index) {
                           final task = tasks[index];
+                          return TaskTile(
+                            task: task,
+                            isExpanded: expandedTaskId == task.id,
+                            isRemoving: removingTasks.contains(task.id),
+                            xp: calculateXp(task),
 
-                          return AnimatedOpacity(
-                            duration: const Duration(milliseconds: 300),
-                            opacity: removingTasks.contains(task.id) ? 0 : 1,
-                            child: AnimatedSlide(
-                              duration: const Duration(milliseconds: 300),
-                              offset: removingTasks.contains(task.id)
-                                  ? const Offset(1, 0)
-                                  : Offset.zero,
+                            onTap: () => toggleExpanded(task),
 
-                              // expanded tile
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(18),
-                                onTap: () => toggleExpanded(task),
+                            onDelete: () => deleteTask(task.id!),
 
-                                child: Container(
-                                  margin:
-                                      const EdgeInsets.only(bottom: 12),
-                                  padding: const EdgeInsets.all(14),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius:
-                                        BorderRadius.circular(18),
-                                    border: Border.all(
-                                        color: const Color(0xFFE5E7EB)),
-                                  ),
-
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Checkbox(
-                                            value: task.completed,
-                                            onChanged: (_) async {
-                                              final confirm =
-                                                  await showDialog(
-                                                context: context,
-                                                builder: (_) => AlertDialog(
-                                                  title: const Text(
-                                                      "Complete Task"),
-                                                  content: const Text(
-                                                      "Mark this task as completed?"),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () =>
-                                                          Navigator.pop(
-                                                              context, false),
-                                                      child:
-                                                          const Text("Cancel"),
-                                                    ),
-                                                    TextButton(
-                                                      onPressed: () =>
-                                                          Navigator.pop(
-                                                              context, true),
-                                                      child:
-                                                          const Text("Confirm"),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-
-                                              if (confirm == true) {
-                                                completeTaskWithAnimation(task);
-                                              }
-                                            },
-                                          ),
-
-                                          const SizedBox(width: 10),
-
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(task.name,
-                                                    style:
-                                                        const TextStyle(
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .w700)),
-
-                                                const SizedBox(height: 6),
-
-                                                Text(
-                                                  task.dueDate != null
-                                                      ? DateFormat(
-                                                              'MMM d, yyyy')
-                                                          .format(DateTime.parse(
-                                                              task.dueDate!))
-                                                      : "No due date",
-                                                ),
-
-                                                const SizedBox(height: 8),
-
-                                                Text(
-                                                    "+${calculateXp(task)} XP"),
-                                              ],
-                                            ),
-                                          ),
-
-                                          Icon(
-                                            expandedTaskId == task.id
-                                                ? Icons.expand_less
-                                                : Icons.expand_more,
-                                          ),
-
-                                          IconButton(
-                                            icon: const Icon(Icons.delete),
-                                            onPressed: () =>
-                                                deleteTask(task.id!),
-                                          ),
-                                        ],
-                                      ),
-
-                                      // expanded section
-                                      AnimatedCrossFade(
-                                        duration: const Duration(
-                                            milliseconds: 200),
-                                        crossFadeState:
-                                            expandedTaskId == task.id
-                                                ? CrossFadeState.showSecond
-                                                : CrossFadeState.showFirst,
-                                        firstChild: const SizedBox(),
-                                        secondChild: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            const Divider(),
-                                            Text(
-                                              task.comments.isNotEmpty
-                                                  ? task.comments
-                                                  : "No additional comments",
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                            onComplete: () async {
+                              final confirm = await showDialog(
+                                context: context,
+                                builder: (_) => AlertDialog(
+                                  title: const Text("Complete Task"),
+                                  content: const Text("Mark this task as completed?"),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, false),
+                                      child: const Text("Cancel"),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, true),
+                                      child: const Text("Confirm"),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ),
+                              );
+
+                              if (confirm == true) {
+                                completeTaskWithAnimation(task);
+                              }
+                            },
                           );
                         },
                       ),
