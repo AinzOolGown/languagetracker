@@ -13,13 +13,13 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Task> tasks = [];
-  Set<int> removingTasks = {};
-  int lifetimeXp = 0;
-  int currentXp = 0;
-  int level = 1;
-  bool isLoading = true;
-
+  // State variables
+  List<Task> tasks = []; // Active tasks list
+  Set<int> removingTasks = {}; // Track tasks being removed for animation
+  int lifetimeXp = 0; // Total XP earned across all time
+  int currentXp = 0; // XP towards next level
+  int level = 1; // XP and level tracking
+  bool isLoading = true; // controls initial loading state
   int? expandedTaskId; // controls expansion
 
   @override
@@ -55,6 +55,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // Calculate XP based on task difficulty
   int calculateXp(Task task) {
     switch (task.difficulty) {
       case 1: return 10;
@@ -70,7 +71,7 @@ class _HomePageState extends State<HomePage> {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (_) => TaskScreen(),
+      builder: (_) => TaskScreen(), // New task screen
     );
     loadTasks();
   }
@@ -80,9 +81,10 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       removingTasks.add(task.id!);
     });
-
+    // Wait for animation to play before updating state
     await Future.delayed(const Duration(milliseconds: 300));
 
+    // Update task as completed in database
     task.completed = true;
     final db = DatabaseHelper.instance;
     await db.updateTask(task);
@@ -130,6 +132,7 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text("Language Tasks"),
         actions: [
+          // Navigate to history screen
           IconButton(
             icon: const Icon(Icons.history_rounded),
             onPressed: () {

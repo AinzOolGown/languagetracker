@@ -19,6 +19,7 @@ class XpProgressBar extends StatelessWidget {
     if (progress < 0) progress = 0;
 
     return Container(
+      // Outer green card
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
