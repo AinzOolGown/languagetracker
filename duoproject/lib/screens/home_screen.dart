@@ -21,6 +21,16 @@ class _HomePageState extends State<HomePage> {
     loadTasks();
   }
 
+  int calculateXp(Task task) {
+    switch (task.difficulty) {
+      case 1: return 10;
+      case 2: return 20;
+      case 3: return 35;
+      case 4: return 50;
+      default: return 10;
+    }
+  }
+
   Future loadTasks() async {
     final data = await DatabaseHelper.instance.readActiveTasks();
 
@@ -41,16 +51,32 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future toggleTask(Task task) async {
-    task.completed = !task.completed;
-
-    await DatabaseHelper.instance.updateTask(task);
-
-    loadTasks();
+    if (!task.completed) {
+      await completeTaskWithAnimation(task);
+    }
   }
 
   Future deleteTask(int id) async {
-    await DatabaseHelper.instance.deleteTask(id);
-
+    final confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Delete Task"),
+        content: Text("Are you sure you want to delete this task?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text("Delete"),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true) {
+      await DatabaseHelper.instance.deleteTask(id);
+    }
     loadTasks();
   }
 
@@ -58,9 +84,23 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       removingTasks.add(task.id!);
     });
+
     await Future.delayed(Duration(milliseconds: 300));
+
     task.completed = true;
-    await DatabaseHelper.instance.updateTask(task);
+
+    final db = DatabaseHelper.instance;
+
+    await db.updateTask(task);
+
+    final xp = calculateXp(task);
+
+    await db.insertXp(
+      taskName: task.name,
+      type: task.type,
+      xp: xp,
+    );
+
     loadTasks();
   }
 
@@ -112,7 +152,7 @@ class _HomePageState extends State<HomePage> {
                         ? "Due: ${task.dueDate}"
                         : "Goal (no due date)"
                     ),
-                    Text("XP: ${task.xp}"),
+                    Text("XP: ${calculateXp(task)}"),
                   ],
                 ),
 
