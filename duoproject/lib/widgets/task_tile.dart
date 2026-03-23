@@ -8,6 +8,7 @@ class TaskTile extends StatelessWidget {
   final bool isRemoving;
   final int xp;
 
+  // Callbacks
   final VoidCallback onTap;
   final VoidCallback onDelete;
   final VoidCallback onComplete;
@@ -25,15 +26,18 @@ class TaskTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Slide out + fade out animation when removing a task
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 300),
       opacity: isRemoving ? 0 : 1,
       child: AnimatedSlide(
         duration: const Duration(milliseconds: 300),
         offset: isRemoving ? const Offset(1, 0) : Offset.zero,
+        // Main card
         child: InkWell(
           borderRadius: BorderRadius.circular(18),
           onTap: onTap,
+          // Card content
           child: Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(14),
@@ -72,9 +76,47 @@ class TaskTile extends StatelessWidget {
                                 : "No due date",
                           ),
 
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 10),
 
-                          Text("+$xp XP"),
+                          Row(
+                            children: [
+                              // blue Type chip
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEEF2FF),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  task.type,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF4338CA),
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(width: 8),
+
+                              // red XP chip
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFF7ED),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  "+$xp XP",
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFFF97316),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
