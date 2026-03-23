@@ -6,7 +6,6 @@ import '../database/database_helper.dart';
 import '../models/task.dart';
 import 'task_screen.dart';
 
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
   @override
@@ -20,7 +19,8 @@ class _HomePageState extends State<HomePage> {
   int currentXp = 0;
   int level = 1;
   bool isLoading = true;
-  int? expandedTaskId;
+
+  int? expandedTaskId; // controls expansion
 
   @override
   void initState() {
@@ -28,35 +28,28 @@ class _HomePageState extends State<HomePage> {
     loadTasks();
   }
 
-  // Toggle task expansion for details view
   void toggleExpanded(Task task) {
     setState(() {
       if (expandedTaskId == task.id) {
-        expandedTaskId = null; // collapse
+        expandedTaskId = null;
       } else {
-        expandedTaskId = task.id; // expand new one
+        expandedTaskId = task.id;
       }
     });
   }
 
-  Future<void> loadData() async {
+  Future<void> loadTasks() async {
     final db = DatabaseHelper.instance;
 
     final loadedTasks = await db.readActiveTasks();
     final loadedLifetimeXp = await db.getLifetimeXp();
 
-    final xp = loadedLifetimeXp;
-    final lvl = (xp ~/ 200) + 1;
-    final current = xp % 200;
-
     setState(() {
       tasks = loadedTasks;
-      lifetimeXp = loadedLifetimeXp;      
+      lifetimeXp = loadedLifetimeXp;
 
-      level = lvl;
-      currentXp = current;
-
-      isLoading = false;
+      currentXp = lifetimeXp % 200;
+      level = (lifetimeXp ~/ 200) + 1;
     });
   }
 
@@ -70,77 +63,26 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Soft delete task and refresh list
-  Future<void> loadTasks() async {
-    final db = DatabaseHelper.instance;
-
-    // Load active tasks and lifetime XP
-    final loadedTasks = await db.readActiveTasks();
-    final loadedLifetimeXp = await db.getLifetimeXp();
-
-    setState(() {
-      tasks = loadedTasks;
-      lifetimeXp = loadedLifetimeXp;
-
-      currentXp = lifetimeXp % 200;
-      level = (lifetimeXp ~/ 200) + 1;
-    });
-  }
-
-  // Open task creation screen and refresh tasks after it's closed
   void openTaskCreator() async {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (_) => TaskScreen(),
     );
-
-    // refresh tasks after closing
     loadTasks();
   }
 
-  Future toggleTask(Task task) async {
-    if (!task.completed) {
-      await completeTaskWithAnimation(task);
-    }
-  }
-
-  Future deleteTask(int id) async {
-    final confirm = await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Delete Task"),
-        content: Text("Are you sure you want to delete this task?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text("Cancel"),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text("Delete"),
-          ),
-        ],
-      ),
-    );
-    if (confirm == true) {
-      await DatabaseHelper.instance.deleteTask(id);
-    }
-    loadTasks();
-  }
-
-  // Animate task completion, update DB, and refresh list
   Future completeTaskWithAnimation(Task task) async {
     setState(() {
       removingTasks.add(task.id!);
     });
 
-    await Future.delayed(Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 300));
 
-    // Mark task as completed in DB and insert XP record
     task.completed = true;
     final db = DatabaseHelper.instance;
     await db.updateTask(task);
+
     final xp = calculateXp(task);
     await db.insertXp(
       taskName: task.name,
@@ -151,289 +93,255 @@ class _HomePageState extends State<HomePage> {
     await loadTasks();
   }
 
+  Future deleteTask(int id) async {
+    final confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete Task"),
+        content: const Text("Are you sure you want to delete this task?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Delete"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await DatabaseHelper.instance.deleteTask(id);
+    }
+
+    loadTasks();
+  }
+
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("Language Tasks"),
         actions: [
           IconButton(
-            tooltip: "History",
-            icon: Icon(Icons.history_rounded),
-            onPressed: (){
+            icon: const Icon(Icons.history_rounded),
+            onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => HistoryScreen()),
+                MaterialPageRoute(builder: (_) => const HistoryScreen()),
               );
             },
           ),
         ],
       ),
-      
+
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
           child: Column(
             children: [
+              // progress card
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFF58CC02), Color(0xFF46A302)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF58CC02).withOpacity(0.35),
-                      blurRadius: 24,
-                      offset: const Offset(0, 12),
-                    ),
-                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "Current Progress",
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    const Text("Current Progress",
+                        style: TextStyle(color: Colors.white70)),
                     const SizedBox(height: 8),
-                    Text(
-                      "Level $level",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
+                    Text("Level $level",
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 28,
+                            fontWeight: FontWeight.w800)),
                     const SizedBox(height: 16),
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(18),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.10),
-                            blurRadius: 14,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
                       ),
-                      child: XpProgressBar(currentXp: currentXp, maxXp: 200),
+                      child: XpProgressBar(
+                        currentXp: currentXp,
+                        maxXp: 200,
+                      ),
                     ),
                   ],
                 ),
               ),
+
               const SizedBox(height: 16),
-              Row(
-                children: const [
-                  Icon(Icons.assignment_rounded, color: Color(0xFF374151)),
+
+              const Row(
+                children: [
+                  Icon(Icons.assignment_rounded),
                   SizedBox(width: 8),
-                  Text(
-                    "Your Tasks",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF111827),
-                    ),
-                  ),
+                  Text("Your Tasks",
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                 ],
               ),
+
               const SizedBox(height: 10),
+
               Expanded(
                 child: tasks.isEmpty
-                    ? Center(
-                        child: Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFFE5E7EB)),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.08),
-                                blurRadius: 16,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: const Text(
-                            "No tasks yet.\nTap + to add your first task.",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 16,
-                              height: 1.5,
-                              color: Color(0xFF6B7280),
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      )
+                    ? const Center(child: Text("No tasks yet"))
                     : ListView.builder(
                         itemCount: tasks.length,
                         itemBuilder: (context, index) {
-
                           final task = tasks[index];
 
                           return AnimatedOpacity(
-                            duration: Duration(milliseconds: 300),
-                            opacity: removingTasks.contains(task.id) ? 0.0 : 1.0,
-
+                            duration: const Duration(milliseconds: 300),
+                            opacity: removingTasks.contains(task.id) ? 0 : 1,
                             child: AnimatedSlide(
-                              duration: Duration(milliseconds: 300),
+                              duration: const Duration(milliseconds: 300),
                               offset: removingTasks.contains(task.id)
-                                  ? Offset(1, 0)
-                                  : Offset(0, 0),
+                                  ? const Offset(1, 0)
+                                  : Offset.zero,
 
-                              child: Container(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(18),
-                                  border: Border.all(color: const Color(0xFFE5E7EB)),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.06),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 6),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    //Checkbox
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 2),
-                                      child: Checkbox(
-                                        value: task.completed,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(6),
-                                        ),
-                                        onChanged: (_) async {
-                                          final confirm = await showDialog(
-                                            context: context,
-                                            builder: (context) => AlertDialog(
-                                              title: const Text("Complete Task"),
-                                              content: const Text("Mark this task as completed?"),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () => Navigator.pop(context, false),
-                                                  child: const Text("Cancel"),
+                              // expanded tile
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(18),
+                                onTap: () => toggleExpanded(task),
+
+                                child: Container(
+                                  margin:
+                                      const EdgeInsets.only(bottom: 12),
+                                  padding: const EdgeInsets.all(14),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius:
+                                        BorderRadius.circular(18),
+                                    border: Border.all(
+                                        color: const Color(0xFFE5E7EB)),
+                                  ),
+
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Checkbox(
+                                            value: task.completed,
+                                            onChanged: (_) async {
+                                              final confirm =
+                                                  await showDialog(
+                                                context: context,
+                                                builder: (_) => AlertDialog(
+                                                  title: const Text(
+                                                      "Complete Task"),
+                                                  content: const Text(
+                                                      "Mark this task as completed?"),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                              context, false),
+                                                      child:
+                                                          const Text("Cancel"),
+                                                    ),
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                              context, true),
+                                                      child:
+                                                          const Text("Confirm"),
+                                                    ),
+                                                  ],
                                                 ),
-                                                TextButton(
-                                                  onPressed: () => Navigator.pop(context, true),
-                                                  child: const Text("Confirm"),
+                                              );
+
+                                              if (confirm == true) {
+                                                completeTaskWithAnimation(task);
+                                              }
+                                            },
+                                          ),
+
+                                          const SizedBox(width: 10),
+
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(task.name,
+                                                    style:
+                                                        const TextStyle(
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .w700)),
+
+                                                const SizedBox(height: 6),
+
+                                                Text(
+                                                  task.dueDate != null
+                                                      ? DateFormat(
+                                                              'MMM d, yyyy')
+                                                          .format(DateTime.parse(
+                                                              task.dueDate!))
+                                                      : "No due date",
                                                 ),
+
+                                                const SizedBox(height: 8),
+
+                                                Text(
+                                                    "+${calculateXp(task)} XP"),
                                               ],
                                             ),
-                                          );
-
-                                          if (confirm == true) {
-                                            completeTaskWithAnimation(task);
-                                          }
-                                        },
-                                      ),
-                                    ),
-
-                                    const SizedBox(width: 10),
-
-                                    // Main task content
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          // Title
-                                          Text(
-                                            task.name,
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w700,
-                                              color: Color(0xFF111827),
-                                            ),
                                           ),
 
-                                          const SizedBox(height: 6),
-
-                                          // Due Date
-                                          Text(
-                                            task.dueDate != null
-                                                ? DateFormat('MMM d, yyyy')
-                                                    .format(DateTime.parse(task.dueDate!))
-                                                : "No due date",
-                                            style: const TextStyle(
-                                              fontSize: 13,
-                                              color: Color(0xFF6B7280),
-                                              fontWeight: FontWeight.w500,
-                                            ),
+                                          Icon(
+                                            expandedTaskId == task.id
+                                                ? Icons.expand_less
+                                                : Icons.expand_more,
                                           ),
 
-                                          const SizedBox(height: 10),
-
-                                          // Chips Row
-                                          Row(
-                                            children: [
-                                              // Type chip
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                                decoration: BoxDecoration(
-                                                  color: const Color(0xFFEEF2FF),
-                                                  borderRadius: BorderRadius.circular(10),
-                                                ),
-                                                child: Text(
-                                                  task.type,
-                                                  style: const TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Color(0xFF4338CA),
-                                                  ),
-                                                ),
-                                              ),
-
-                                              const SizedBox(width: 8),
-
-                                              // XP chip
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                                decoration: BoxDecoration(
-                                                  color: const Color(0xFFFFF7ED),
-                                                  borderRadius: BorderRadius.circular(10),
-                                                ),
-                                                child: Text(
-                                                  "+${calculateXp(task)} XP",
-                                                  style: const TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: Color(0xFFF97316),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
+                                          IconButton(
+                                            icon: const Icon(Icons.delete),
+                                            onPressed: () =>
+                                                deleteTask(task.id!),
                                           ),
                                         ],
                                       ),
-                                    ),
 
-                                    // Delete button
-                                    IconButton(
-                                      icon: const Icon(Icons.delete_outline),
-                                      color: const Color(0xFF9CA3AF),
-                                      onPressed: () {
-                                        deleteTask(task.id!);
-                                      },
-                                    ),
-                                  ],
+                                      // expanded section
+                                      AnimatedCrossFade(
+                                        duration: const Duration(
+                                            milliseconds: 200),
+                                        crossFadeState:
+                                            expandedTaskId == task.id
+                                                ? CrossFadeState.showSecond
+                                                : CrossFadeState.showFirst,
+                                        firstChild: const SizedBox(),
+                                        secondChild: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const Divider(),
+                                            Text(
+                                              task.comments.isNotEmpty
+                                                  ? task.comments
+                                                  : "No additional comments",
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
