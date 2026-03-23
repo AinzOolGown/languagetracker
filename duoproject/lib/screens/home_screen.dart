@@ -142,42 +142,8 @@ class _HomePageState extends State<HomePage> {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
           child: Column(
             children: [
-              // progress card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF58CC02), Color(0xFF46A302)],
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text("Current Progress",
-                        style: TextStyle(color: Colors.white70)),
-                    const SizedBox(height: 8),
-                    Text("Level $level",
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: XpProgressBar(
-                        currentXp: currentXp,
-                        maxXp: 200,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // xp progress card called
+              XpProgressBar(level: level, currentXp: currentXp),              
 
               const SizedBox(height: 16),
 
