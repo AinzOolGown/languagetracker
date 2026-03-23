@@ -165,7 +165,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       const Divider(color: Colors.white24),
                       const SizedBox(height: 8),
 
-                      // 🔥 XP BY TYPE (NEW FEATURE)
+                      // XP by type
                       if (xpByType.isNotEmpty) ...[
                         const Text(
                           "XP by Category",
@@ -188,7 +188,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         const Divider(color: Colors.white24),
                       ],
 
-                      // -------- RECENT XP --------
+                      // Recent XP
                       if (recentXp.isEmpty)
                         const Padding(
                           padding: EdgeInsets.only(top: 4),
