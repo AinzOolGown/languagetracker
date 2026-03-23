@@ -20,11 +20,23 @@ class _HomePageState extends State<HomePage> {
   int currentXp = 0;
   int level = 1;
   bool isLoading = true;
+  int? expandedTaskId;
 
   @override
   void initState() {
     super.initState();
     loadTasks();
+  }
+
+  // Toggle task expansion for details view
+  void toggleExpanded(Task task) {
+    setState(() {
+      if (expandedTaskId == task.id) {
+        expandedTaskId = null; // collapse
+      } else {
+        expandedTaskId = task.id; // expand new one
+      }
+    });
   }
 
   Future<void> loadData() async {
@@ -58,9 +70,11 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Soft delete task and refresh list
   Future<void> loadTasks() async {
     final db = DatabaseHelper.instance;
 
+    // Load active tasks and lifetime XP
     final loadedTasks = await db.readActiveTasks();
     final loadedLifetimeXp = await db.getLifetimeXp();
 
@@ -73,6 +87,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // Open task creation screen and refresh tasks after it's closed
   void openTaskCreator() async {
     await showModalBottomSheet(
       context: context,
@@ -114,6 +129,7 @@ class _HomePageState extends State<HomePage> {
     loadTasks();
   }
 
+  // Animate task completion, update DB, and refresh list
   Future completeTaskWithAnimation(Task task) async {
     setState(() {
       removingTasks.add(task.id!);
@@ -121,14 +137,11 @@ class _HomePageState extends State<HomePage> {
 
     await Future.delayed(Duration(milliseconds: 300));
 
+    // Mark task as completed in DB and insert XP record
     task.completed = true;
-
     final db = DatabaseHelper.instance;
-
     await db.updateTask(task);
-
     final xp = calculateXp(task);
-
     await db.insertXp(
       taskName: task.name,
       type: task.type,
